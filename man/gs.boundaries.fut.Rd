@@ -79,7 +79,7 @@ s1.studya = StudyA.aids$s1
 \donttest{
 bound = gs.boundaries.fut(szerop = s0.studya, sonep = s1.studya, yzerop=StudyA.aids$y0, 
 nzero = nrow(StudyB.aids$s0),none = nrow(StudyB.aids$s1), n.stg=4, B.norm=1e6, 
-alpha=0.05)
+alpha=0.05, plot=TRUE)
 
 bound
 }

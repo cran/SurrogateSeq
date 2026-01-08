@@ -1,6 +1,6 @@
-efc853abaf65154eb38f2af84dcbf92a *DESCRIPTION
+025d62dd3148fbb8cd464926f73c9e4c *DESCRIPTION
 5c87298970bee7b4189df2e9d061b5d3 *NAMESPACE
-2f1043542498222a56ea97d8ccbb3caa *R/SurrogateSeq.functions.R
+615a3e6ecc67138cbcca83222f268d47 *R/SurrogateSeq.functions.R
 7be200f4d30ca60a63e0eecbd2244f0e *data/StudyA.aids.RData
 b97afd8ca72020ab549b3b5e4d238e87 *data/StudyB.aids.RData
 2dfca10ed7f979b9acae53d61d0f9f29 *data/example.data.RData
@@ -13,8 +13,8 @@ fe343407e0c401ee7d14b4ffe84da230 *man/bdr.gs.mc.fut.Rd
 2cb1c4b189da2a89da95b0453fe6d8c3 *man/cov.surr.gs.Rd
 a119b6426a938938733ab5c501f1a1e2 *man/delta.e.estimate.Rd
 3f8049394f3bb6f33cadcb4cd254fae1 *man/example.data.Rd
-33d7f155a6d1f1e72ced17bc488986dc *man/gs.boundaries.Rd
-02598e2f3d6c85c19fda8ca7f1dd1428 *man/gs.boundaries.fut.Rd
+8e3230ed6736172c6f73f13f9a820942 *man/gs.boundaries.Rd
+ca818d9ce6bc1bb2d5d3e8550c234416 *man/gs.boundaries.fut.Rd
 5b36d8ad69a4999d257dd142e35f82db *man/kern.estJ.Rd
 7cedfc3ea83f56d208ee608f786c63ae *man/op.char.gs.fut.Rd
 3377e79faa3f6dec4f9093f98e895616 *man/pred.smooth.2.Rd

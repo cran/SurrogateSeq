@@ -227,44 +227,74 @@ bdr.gs.mc.gen = function(alpha=.05, mc.paths, w.vec) {
 }
 
 gs.boundaries.fut = function(szerop, sonep, yzerop, nzero, none, n.stg, B.norm=1e6, alpha=0.05, pp=0.4, inf.fraction = (1:n.stg)/n.stg, j.star=1, alpha0=(j.star/n.stg)*alpha, plot=FALSE){
-	Time=NULL
-	Stat=NULL
-	xx=NULL
-	bdr.naive = rep(qnorm(1-0.05/2),n.stg)
-	bdr.bonf = rep(qnorm(1-0.05/(2*n.stg)),n.stg)
-	
-	# Compute covariance matrix
-	cov.stuffA4=cov.surr.gs(s0.4.est=szerop, s1.4.est=sonep, sa.0=szerop, ya.0=yzerop, nb.0=nzero, nb.1=none, full.matrix=TRUE, naive=TRUE)
-
-	# Simulate MVN null paths
-	paths.norm4=mvrnorm(n=B.norm, mu=rep(0,n.stg), Sigma=cov.stuffA4$cov.stand.samp)  
-
-	# Compute boundaries
-	bdr.Poc=bdr.gs.mc.fut(c1=NULL, c2=NULL,pp=.5,j.star=j.star,alpha=alpha,alpha0=.05*.75, mc.paths=paths.norm4, inf.fraction=inf.fraction, n.stg=n.stg)  
-
-    bdr.OF=bdr.gs.mc.fut(c1=NULL, c2=NULL, pp=0, n.stg=n.stg, j.star=j.star, alpha=.05, alpha0=.05*.1, mc.paths=paths.norm4,inf.fraction=inf.fraction)  
-	bdr.WT=bdr.gs.mc.fut(c1=NULL, c2=NULL, pp=pp, n.stg=n.stg, j.star=j.star, alpha=.05, mc.paths=paths.norm4, inf.fraction=inf.fraction)  
+  set.seed(1)
+  Time=NULL
+  Stat=NULL
+  xx=NULL
+  bdr.naive = rep(qnorm(1-0.05/2),n.stg)
+  bdr.bonf = rep(qnorm(1-0.05/(2*n.stg)),n.stg)
+  
+  # Compute covariance matrix
+  cov.stuffA4=cov.surr.gs(s0.4.est=szerop, s1.4.est=sonep, sa.0=szerop, ya.0=yzerop, nb.0=nzero, nb.1=none, full.matrix=TRUE, naive=TRUE)
+  
+  # Simulate MVN null paths
+  paths.norm4=mvrnorm(n=B.norm, mu=rep(0,n.stg), Sigma=cov.stuffA4$cov.stand.samp)  
+  
+  # Compute boundaries
+  bdr.Poc=bdr.gs.mc.fut(c1=NULL, c2=NULL,pp=.5,j.star=j.star,alpha=alpha,alpha0=.05*.75, mc.paths=paths.norm4, inf.fraction=inf.fraction, n.stg=n.stg)  
+  
+  bdr.OF=bdr.gs.mc.fut(c1=NULL, c2=NULL, pp=0, n.stg=n.stg, j.star=j.star, alpha=.05, alpha0=.05*.1, mc.paths=paths.norm4,inf.fraction=inf.fraction)  
+  bdr.WT=bdr.gs.mc.fut(c1=NULL, c2=NULL, pp=pp, n.stg=n.stg, j.star=j.star, alpha=.05, mc.paths=paths.norm4, inf.fraction=inf.fraction)  
+  
+  Pocock.futility = bdr.Poc$a
+  Pocock.nullrejection = bdr.Poc$b
+  OBrien_Fleming.futility = bdr.OF$a
+  OBrien_Fleming.nullrejection = bdr.OF$b
+  Wang_Tsiatis.futility = bdr.WT$a
+  Wang_Tsiatis.nullrejection = bdr.WT$b
+  
+  if(plot){
+    mydata = as.data.frame(cbind(c(1:n.stg), rep(0,n.stg)))
+    names(mydata) = c("Time", "Stat")
+    ymax = max(bdr.naive[1],bdr.bonf[1], bdr.OF$bndry.vec, bdr.Poc$bndry.vec, bdr.WT$bndry.vec)
+    ymin = -ymax
+ 
     
-    Pocock.futility = bdr.Poc$a
-     Pocock.nullrejection = bdr.Poc$b
-     OBrien_Fleming.futility = bdr.OF$a
-     OBrien_Fleming.nullrejection = bdr.OF$b
-     Wang_Tsiatis.futility = bdr.WT$a
-     Wang_Tsiatis.nullrejection = bdr.WT$b
-     
-    if(plot){
-    	mydata = as.data.frame(cbind(c(1:n.stg), rep(0,n.stg)))
-    	names(mydata) = c("Time", "Stat")
-		ymax = max(bdr.naive[1],bdr.bonf[1], bdr.OF$bndry.vec, bdr.Poc$bndry.vec, bdr.WT$bndry.vec)
-	ymin = -ymax
-
-    p1 =	ggplot(mydata, aes(Time, Stat)) + geom_point(size=0, color="white") + geom_hline(yintercept=bdr.naive[1], linetype="dashed", color = "red") + geom_hline(yintercept=-bdr.naive[1], linetype="dashed", color = "red") + geom_hline(yintercept=bdr.bonf[1], linetype="dashed", color = "blue") + geom_hline(yintercept=-1*bdr.bonf[1], linetype="dashed", color = "blue") + stat_function(fun = function(xx) bdr.OF$c1*(xx/n.stg)^(-1/2),linetype="dashed", color = "purple") + stat_function(fun = function(xx) -bdr.OF$c1*(xx/n.stg)^(-1/2),linetype="dashed", color = "purple") + stat_function(fun = function(xx) ((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)),linetype="dotted", color = "purple",xlim = c(min(xx[((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)) > 0]),max(xx))) + stat_function(fun = function(xx) -((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)),linetype="dotted", color = "purple", xlim = c(min(xx[((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)) > 0]),max(xx))) + stat_function(fun = function(xx) bdr.Poc$c1,linetype="dashed", color = "black")+ stat_function(fun = function(xx) -bdr.Poc$c1,linetype="dashed", color = "black") + stat_function(fun = function(xx) ((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)),linetype="dotted", color = "black", xlim = c(min(xx[((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)) > 0]),max(xx)))+ stat_function(fun = function(xx) -((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)),linetype="dotted", color = "black", xlim = c(min(xx[((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)) > 0]),max(xx))) + stat_function(fun = function(xx) bdr.WT$c1*(xx/n.stg)^(pp-1/2),linetype="dashed", color = "grey") + stat_function(fun = function(xx) -bdr.WT$c1*(xx/n.stg)^(pp-1/2),linetype="dashed", color = "grey") + stat_function(fun = function(xx) ((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)),linetype="dotted", color = "grey", xlim = c(min(xx[((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)) > 0]),max(xx))) + stat_function(fun = function(xx) -((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)),linetype="dotted", color = "grey",xlim = c(min(xx[((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)) > 0]),max(xx))) + ylim(ymin,ymax) + labs(title = "Boundaries", x = "Time/Stages", y = expression(paste("Test statistic, ",Z[E]))) + annotate(geom = 'text', label = "Naive = red; Bonferroni = blue; O'Brien-Fleming = purple; Pocock = black; Wang-Tsiatis = grey; dashed = null rejection; dotted = futility", x = -Inf, y = Inf, hjust = 0, vjust = 1, size=2)
-
-    }
-    if(!plot) {p1 = NULL}
-	return(list("Naive" = bdr.naive, "Bonf" = bdr.bonf, "Pocock.futility" = Pocock.futility, "Pocock.nullrejection" = Pocock.nullrejection, "OBrien_Fleming.futility" = OBrien_Fleming.futility, "OBrien_Fleming.nullrejection" = OBrien_Fleming.nullrejection, "Wang_Tsiatis.futility" = Wang_Tsiatis.futility, "Wang_Tsiatis.nullrejection" = Wang_Tsiatis.nullrejection, plot = p1))
-
+    p1 =	ggplot(mydata, aes(Time, Stat)) + geom_point(size=0, color="white") + geom_hline(yintercept=bdr.naive[1], linetype="dashed", color = "red") + geom_hline(yintercept=-bdr.naive[1], linetype="dashed", color = "red") + geom_hline(yintercept=bdr.bonf[1], linetype="dashed", color = "blue") + geom_hline(yintercept=-1*bdr.bonf[1], linetype="dashed", color = "blue") + stat_function(fun = function(xx) bdr.OF$c1*(xx/n.stg)^(-1/2),linetype="dashed", color = "purple") + stat_function(fun = function(xx) -bdr.OF$c1*(xx/n.stg)^(-1/2),linetype="dashed", color = "purple") + ylim(ymin,ymax) + labs(title = "Boundaries", x = "Time/Stages", y = expression(paste("Test statistic, ",Z[E]))) + annotate(geom = 'text', label = "Naive = red; Bonferroni = blue; O'Brien-Fleming = purple; Pocock = black; Wang-Tsiatis = grey; dashed = null rejection; dotted = futility", x = -Inf, y = Inf, hjust = 0, vjust = 1, size=2)
+    
+    # define a grid
+    xx_grid <- seq(min(mydata$Time), max(mydata$Time), length.out = 2000)
+    
+    OF_fun <- (bdr.OF$c1 + bdr.OF$c2) * (xx_grid / n.stg)^0.5 -
+      bdr.OF$c2 * (xx_grid / n.stg)^(-0.5)
+    
+    xmin_OF <- min(xx_grid[OF_fun > 0])
+    xmax_OF <- max(xx_grid)
+    p1 = p1 + stat_function(fun = function(xx) ((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)),linetype="dotted", color = "purple", xlim = c(xmin_OF,xmax_OF)) + stat_function(fun = function(xx) -((bdr.OF$c1+bdr.OF$c2)*(xx/n.stg)^(.5)-bdr.OF$c2*(xx/n.stg)^(0-.5)),linetype="dotted", color = "purple",xlim = c(xmin_OF,xmax_OF))
+    
+    Poc_fun <- (bdr.Poc$c1 + bdr.Poc$c2) * (xx_grid / n.stg)^0.5 -
+      bdr.Poc$c2 * (xx_grid / n.stg)^(-0.5)
+    
+    xmin_Poc <- min(xx_grid[Poc_fun > 0])
+    xmax_Poc <- max(xx_grid)
+    
+    p1 = p1   + stat_function(fun = function(xx) bdr.Poc$c1,linetype="dashed", color = "black")+ stat_function(fun = function(xx) -bdr.Poc$c1,linetype="dashed", color = "black") + stat_function(fun = function(xx) ((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)),linetype="dotted", color = "black", xlim = c(xmin_Poc,xmax_Poc))+ stat_function(fun = function(xx) -((bdr.Poc$c1+bdr.Poc$c2)*(xx/n.stg)^(.5)-bdr.Poc$c2*(xx/n.stg)^(.5-.5)),linetype="dotted", color = "black", xlim = c(xmin_Poc,xmax_Poc))
+    
+    WT_fun <- (bdr.WT$c1 + bdr.WT$c2) * (xx_grid / n.stg)^0.5 -
+      bdr.WT$c2 * (xx_grid / n.stg)^(-0.5)
+    
+    xmin_WT <- min(xx_grid[WT_fun > 0])
+    xmax_WT <- max(xx_grid)
+    
+    p1 = p1 + stat_function(fun = function(xx) bdr.WT$c1*(xx/n.stg)^(pp-1/2),linetype="dashed", color = "grey") + stat_function(fun = function(xx) -bdr.WT$c1*(xx/n.stg)^(pp-1/2),linetype="dashed", color = "grey") + stat_function(fun = function(xx) ((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)),linetype="dotted", color = "grey", xlim = c(xmin_WT,xmax_WT)) + stat_function(fun = function(xx) -((bdr.WT$c1+bdr.WT$c2)*(xx/n.stg)^(.5)-bdr.WT$c2*(xx/n.stg)^(pp-.5)),linetype="dotted", color = "grey", xlim = c(xmin_WT,xmax_WT)) 
+    
+  }
+  if(!plot) {p1 = NULL}
+  return(list("Naive" = bdr.naive, "Bonf" = bdr.bonf, "Pocock.futility" = Pocock.futility, "Pocock.nullrejection" = Pocock.nullrejection, "OBrien_Fleming.futility" = OBrien_Fleming.futility, "OBrien_Fleming.nullrejection" = OBrien_Fleming.nullrejection, "Wang_Tsiatis.futility" = Wang_Tsiatis.futility, "Wang_Tsiatis.nullrejection" = Wang_Tsiatis.nullrejection, plot = p1))
+  
 }
+
+
 
 bdr.gs.mc.fut = function(c1=NULL, c2=NULL, pp=.4, n.stg, j.star=1, alpha=.05, alpha0=(j.star/n.stg)*alpha, mc.paths, inf.fraction=(1:n.stg)/n.stg, N.iter.max=100, alpha.tol=.02*alpha) {
   
